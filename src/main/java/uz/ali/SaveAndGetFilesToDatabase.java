@@ -7,7 +7,8 @@ public class SaveAndGetFilesToDatabase {
     public static void main(String[] args) {
 
 //        insertImage(new File("src/main/resources/filesThatGoToTheDatabase/img.png"));
-        retrieveImage();
+//        retrieveImage();
+        insertFile(new File("files/test.txt"));
 
     }
 
@@ -59,6 +60,28 @@ public class SaveAndGetFilesToDatabase {
             throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void insertFile(File file) {
+        try (Connection con = DatabaseUtil.getConnection()) {
+            String fileName = file.getName();
+            int dotIndex = file.getName().lastIndexOf('.');
+
+            FileInputStream fileInputStream = new FileInputStream(file);
+            String sql = "insert into image_attach (f_name, f_type, f_data) values(?,?,?)";
+
+            PreparedStatement preparedStatement = con.prepareStatement(sql);
+
+
+            preparedStatement.setString(1, fileName.substring(0, dotIndex));
+            preparedStatement.setString(2, fileName.substring(dotIndex));
+            preparedStatement.setBinaryStream(3, fileInputStream);
+            preparedStatement.executeUpdate(); // Insert qilganimiz uchun executeUpdate() ni ishlatamiz.
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
