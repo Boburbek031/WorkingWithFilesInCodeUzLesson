@@ -8,7 +8,8 @@ public class SaveAndGetFilesToDatabase {
 
 //        insertImage(new File("src/main/resources/filesThatGoToTheDatabase/img.png"));
 //        retrieveImage();
-        insertFile(new File("files/test.txt"));
+//        insertFile(new File("files/test.txt"));
+        retrieveFile();
 
     }
 
@@ -82,6 +83,38 @@ public class SaveAndGetFilesToDatabase {
             e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void retrieveFile() {
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select * from image_attach");
+            while (resultSet.next()) {
+                // Bu 1 - step, database dan file ni yoki filelarni olib unlarni byte ko'rinishiga olib keldik
+                String fName = resultSet.getString("f_name");
+                String fType = resultSet.getString("f_type");
+                InputStream inputStream = resultSet.getBinaryStream("f_data");
+
+                if (inputStream != null) {
+                    byte[] bytes_of_file = new byte[inputStream.available()];
+                    inputStream.read(bytes_of_file);
+
+                    // 2 - step da byte ni olib kelgan file type bilan bir xil bo'lgan bitta file ochamiz fa o'sha
+                    // file ga byte ni yozib saqlab qo'yamiz va ish bitdi.
+                    File file = new File("files/" + fName + "_come_from_db" + "." + fType);
+                    // src/main/resources/filesThatComeFromDatabase/img_1__come_from_db.png // fileni yaratib oldik
+                    OutputStream outputStream = new FileOutputStream(file);
+                    outputStream.write(bytes_of_file);
+                    outputStream.close();
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
